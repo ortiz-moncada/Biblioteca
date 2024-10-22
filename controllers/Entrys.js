@@ -1,86 +1,79 @@
-const Entrys =  require("../models/Entrys");
+const Entrys = require("../models/Entrys")
 
 
-
-
-const getlistarEntyreHolders = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const entries = await Entrys.find({ holder: id });
-
-    res.json({ entries });
-  } catch (error) {
-    res.status(400).json({ error: "La operación no se realizó" });
-    console.log(error);
-  }
-};
-
-
-const getListarEntyreDia = async (req, res) => {
-  try {
-    const { date } = req.query; 
-    const entries = await Entrys.find({
-      date: {$eq: new Date(date),},});
-
-    res.json({ entries });
-  } catch (error) {
-    res.status(400).json({ error: "La operación no se realizó" });
-    console.log(error);
-  }
-};
-
-
-const getListarEentyreFecha= async (req, res) => {
-  try {
-    const { startDate, endDate } = req.query; 
-    const entries = await Entrys.find({
-      date: { $gte: new Date(startDate),$lte: new Date(endDate),},});
-
-    res.json({ entries });
-  } catch (error) {
-    res.status(400).json({ error: "La operación no se realizó" });
-    console.log(error);
-  }
-};
-
-const postInsertEntyre = async (req, res) => {
+const postEntry = async (req, res)=>{
     try {
-      const { holder, date, description, amount } = req.body;
-      const newEntry = new Entrys({holder,date,description,amount,});
-  
-      await newEntry.save();
-      res.json({ message: "Entry created successfully", entry: newEntry });
+        const {laptop, holder, entrytime, checkout, type} = req.body;
+        const entry = new Entrys({laptop, holder, entrytime, checkout, type});
+        await entry.save()
+        res.json({entry})
     } catch (error) {
-      res.status(400).json({ error: "La operación no se realizó" });
-      console.log(error);
+        res.status(400).json({error:"la operacion ha fallado"})
+        console.log(error);
     }
-  };
+}
 
-const putRejistrarSandE = async (req, res) => {
-  try {
-    const { entryId, status, deliveryDate } = req.body; 
-    const entry = await Entrys.findById(entryId);
 
-    if (!entry) {
-      return res.status(404).json({ error: "Entry not found" });
+
+const getlistarPorHolder = async (req,res)=>{
+    try {
+        const {id} = req.params;
+        const entry = await Entrys.find({holder:id});
+        res.json({entry});
+    } catch (error) {
+        res.status(400).json({error:"la operacion ha fallado"})
+        console.log(error);
     }
+}
 
-    entry.status = status;
-    entry.deliveryDate = deliveryDate;
 
-    await entry.save();
-    res.json({ message: "Entry updated successfully", entry });
-  } catch (error) {
-    res.status(400).json({ error: "La operación no se realizó" });
-    console.log(error);
-  }
-};
 
-module.exports = {
-    getlistarEntyreHolders,
-    getListarEntyreDia,
-    getListarEentyreFecha,
-    postInsertEntyre,
-    putRejistrarSandE,
- 
-};
+const getListarPorDia = async (req, res)=>{
+    try {
+        const {dia} = req.params;
+        const startOfDay = new Date(dia);
+        const endOfDay = new Date(dia);
+        endOfDay.setDate(endOfDay.getDate() + 1);
+        const entry = await Entrys.find({
+            entrytime: { $gte: startOfDay, $lt: endOfDay }
+        });
+        res.json({entry})
+    } catch (error) {
+        res.status(400).json({error :"la  operacion ha fallado"})
+        console.log(error);
+}
+}
+
+
+
+const getListarPorFechas = async (req, res)=>{
+    try {
+        const {fechaInicio, fechaFinal} = req.params
+        const fecha1 = new Date (fechaInicio);
+        const fecha2 = new Date (fechaFinal);
+        const entrys = await Entrys.find({
+            entrytime: { $gte: fecha1, $lt: fecha2 }
+        });
+        res.json({entrys})
+    } catch (error) {
+        res.status(400).json({error :"la  operacion fallo"})
+        console.log(error);
+
+}
+}
+
+const putEntradaSalida = async (req, res)=>{
+    try {
+        const {salida} = req.params;
+        const {id} = req.body;
+        const {laptop, entrytime, checkout, type} = req.body;
+        const entry= await Entrys.findByIdAndUpdate(id,{type:salida},{ new: true})
+        res.json({entry})
+    } catch (error) {
+        res.status(400).json({error:"la operacion no se realizo correctamente"})
+    }
+}
+
+module.exports={postEntry, getlistarPorHolder, getListarPorDia, getListarPorFechas, putEntradaSalida}
+
+
